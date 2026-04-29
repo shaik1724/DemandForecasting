@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demand Forecasting Dashboard</title>
+    <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="loading-overlay" id="loader">
+    <div class="loader"></div>
+    <div class="loading-text" id="loadingMsg">Initialising Forecast Engine</div>
+</div>
+
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h3>Scenario Simulator</h3>
+            <p>Modify variables to see impacts</p>
+        </div>
+
+        <div class="control-group">
+            <label>Price Override ($) <span id="priceVal" class="val-badge">$150</span></label>
+            <input type="range" id="priceOverride" min="50" max="300" value="150" oninput="handleSliderInput(this.value)">
+        </div>
+
+        <div class="control-group">
+            <div class="toggle-row">
+                <label class="toggle-label">Flash Sale / Promo</label>
+                <label class="switch">
+                    <input type="checkbox" id="promoOverride" onchange="runForecast(true)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <button class="btn btn-secondary" onclick="runForecast(true)">Simulate Scenario</button>
+        <button class="btn btn-outline" onclick="runForecast(false)">Reset Baseline</button>
+        
+        <div class="sidebar-header">
+            <h3>Financial Planning</h3>
+            <p>Calculate profit margins</p>
+        </div>
+
+        <div class="control-group">
+            <label>Unit Cost ($) <span id="costVal" class="val-badge">$45</span></label>
+            <input type="range" id="costPrice" min="10" max="200" value="45" oninput="handleCostInput(this.value)">
+        </div>
+
+        <button class="btn btn-secondary" onclick="runForecast(true)">Simulate Scenario</button>
+    </aside>
+
+    <main class="content-area">
+        <header class="app-header">
+            <div class="brand">
+                <h1>DemandForecaster<span>.ai</span></h1>
+                <span class="badge">Decision Support System v2.0</span>
+            </div>
+            <div class="actions">
+                <button class="btn btn-primary" onclick="runForecast(false)">Run Baseline</button>
+            </div>
+        </header>
+
+        <section class="top-row">
+            <div class="card data-card">
+                <div class="card-header-flex">
+                    <label>Historical Weekly Sales</label>
+                    <div class="upload-area">
+                        <input type="file" id="csvFile" accept=".csv" hidden onchange="handleFileUpload(this)">
+                        <button class="btn-text" onclick="document.getElementById('csvFile').click()">+ Upload CSV</button>
+                    </div>
+                </div>
+                <textarea id="histData" placeholder="e.g. 120, 135, 128...">120,135,142,128,155,167,173,180,192,185,198,210,205,220,215,230,225,240,250,260,255,270,280,290,285,300,310,320,315,330</textarea>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>Horizon (Weeks)</label>
+                        <input type="number" id="horizon" value="12" oninput="runForecast(false)">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card inventory-card">
+                <h3>Smart Inventory Advisor</h3>
+                <div class="inv-grid">
+                    <div class="inv-metric">
+                        <span class="label">Safety Stock</span>
+                        <span id="safety-stock" class="val">--</span>
+                    </div>
+                    <div class="inv-metric">
+                        <span class="label">Reorder Point</span>
+                        <span id="reorder-point" class="val">--</span>
+                    </div>
+                </div>
+                <p class="hint">Calculated based on 95% service level forecast</p>
+            </div>
+        </section>
+
+        <section id="results" class="results-grid">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h3>Demand Projection: Baseline vs Simulated</h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="forecastChart"></canvas>
+                </div>
+            </div>
+
+            <div class="stats-col">
+                <div class="card metric-card profit-card">
+                    <label>Projected Profit</label>
+                    <div id="profit-val" class="val">--</div>
+                    <span id="margin-badge" class="badge">--% Margin</span>
+                </div>
+                <div class="card metric-card revenue-card">
+                    <label>Projected Revenue</label>
+                    <div id="revenue-val" class="val">--</div>
+                </div>
+                <div class="card metric-card">
+                    <label>Accuracy R²</label>
+                    <div id="r2-val" class="val">--</div>
+                </div>
+                <div class="card metric-card">
+                    <label>RMSE Error</label>
+                    <div id="rmse-val" class="val">--</div>
+                </div>
+                <div class="card importance-card">
+                    <label>Feature Impact</label>
+                    <div class="mini-chart">
+                        <canvas id="importanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="full-width">
+                <div class="card table-card">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Week</th>
+                                <th>Forecast</th>
+                                <th>Baseline Δ</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
